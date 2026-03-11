@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TypeMost Pro</title>
+
+<style>
+body{
+font-family: Arial, sans-serif;
+margin:0;
+background:linear-gradient(135deg,#4facfe,#00f2fe);
+display:flex;
+justify-content:center;
+align-items:center;
+min-height:100vh;
+}
+
+.container{
+background:white;
+padding:30px;
+border-radius:12px;
+box-shadow:0 10px 25px rgba(0,0,0,0.15);
+width:90%;
+max-width:900px;
+}
+
+h1{text-align:center;margin-top:0;}
+
+select,input,textarea,button{
+width:100%;
+padding:10px;
+margin-top:10px;
+font-size:16px;
+border-radius:8px;
+border:1px solid #ccc;
+}
+
+textarea{
+height:140px;
+}
+
+.paragraph{
+background:#f2f2f2;
+padding:15px;
+border-radius:8px;
+margin-top:10px;
+line-height:1.6;
+}
+
+.stats{
+margin-top:10px;
+font-weight:bold;
+}
+
+button{
+background:#4facfe;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+button:hover{background:#2e8df7;}
+
+.leaderboard{
+margin-top:20px;
+background:#fafafa;
+padding:15px;
+border-radius:8px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+border-bottom:1px solid #ddd;
+padding:8px;
+text-align:left;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>TypeMost Pro</h1>
+
+<label>Your Name</label>
+<input id="username" placeholder="Enter your name">
+
+<label>Select Language</label>
+<select id="language">
+<option>English</option>
+<option>Nepali</option>
+<option>Hindi</option>
+<option>Spanish</option>
+<option>French</option>
+<option>Chinese</option>
+<option>Arabic</option>
+</select>
+
+<label>Number of Words (Minimum 20)</label>
+<input type="number" id="wordLimit" min="20" value="20">
+
+<button onclick="generateParagraph()">Start Test</button>
+
+<div id="paragraph" class="paragraph"></div>
+
+<textarea id="typingBox" placeholder="Start typing here..."></textarea>
+
+<div class="stats">
+Time: <span id="timer">0</span> sec |
+WPM: <span id="wpm">0</span>
+</div>
+
+<button onclick="finishTest()">Finish Test</button>
+
+<p id="result"></p>
+
+<div class="leaderboard">
+<h3>Leaderboard</h3>
+<table id="board">
+<tr>
+<th>Name</th>
+<th>WPM</th>
+<th>Time</th>
+</tr>
+</table>
+</div>
+
+</div>
+
+<script>
+
+const wordBank = [
+"technology","future","learning","internet","computer","science",
+"education","people","development","system","design","application",
+"keyboard","practice","performance","speed","accuracy","challenge",
+"software","hardware","communication","network","creative","solution",
+"problem","analysis","growth","knowledge","innovation","digital"
+];
+
+let startTime=null;
+let timerInterval=null;
+
+function generateParagraph(){
+
+let limit=document.getElementById("wordLimit").value;
+
+if(limit<20){
+alert("Minimum words is 20");
+return;
+}
+
+let words=[];
+
+for(let i=0;i<limit;i++){
+words.push(wordBank[Math.floor(Math.random()*wordBank.length)]);
+}
+
+document.getElementById("paragraph").innerText=words.join(" ");
+document.getElementById("typingBox").value="";
+
+startTime=new Date().getTime();
+
+clearInterval(timerInterval);
+
+timerInterval=setInterval(()=>{
+
+let now=new Date().getTime();
+let seconds=Math.floor((now-startTime)/1000);
+document.getElementById("timer").innerText=seconds;
+
+},1000);
+
+}
+
+function finishTest(){
+
+clearInterval(timerInterval);
+
+let original=document.getElementById("paragraph").innerText.trim();
+let typed=document.getElementById("typingBox").value.trim();
+
+let end=new Date().getTime();
+let time=Math.floor((end-startTime)/1000);
+
+let wordCount=original.split(" ").length;
+
+let wpm=Math.round((wordCount/time)*60);
+
+document.getElementById("wpm").innerText=wpm;
+
+if(original===typed){
+document.getElementById("result").innerHTML="Great! Your speed is "+wpm+" WPM";
+saveScore(wpm,time);
+}else{
+document.getElementById("result").innerHTML="Text not matched exactly. Try again.";
+}
+
+}
+
+function saveScore(wpm,time){
+
+let name=document.getElementById("username").value || "Player";
+
+let scores=JSON.parse(localStorage.getItem("typemost")) || [];
+
+scores.push({name:name,wpm:wpm,time:time});
+
+scores.sort((a,b)=>b.wpm-a.wpm);
+
+scores=scores.slice(0,10);
+
+localStorage.setItem("typemost",JSON.stringify(scores));
+
+loadBoard();
+
+}
+
+function loadBoard(){
+
+let scores=JSON.parse(localStorage.getItem("typemost")) || [];
+
+let table=document.getElementById("board");
+
+table.innerHTML=`
+<tr>
+<th>Name</th>
+<th>WPM</th>
+<th>Time</th>
+</tr>`;
+
+scores.forEach(s=>{
+
+table.innerHTML+=`
+
+<tr>
+<td>${s.name}</td>
+<td>${s.wpm}</td>
+<td>${s.time}s</td>
+</tr>`;
+
+});
+
+}
+
+loadBoard();
+
+</script>
+
+</body>
+</html>
