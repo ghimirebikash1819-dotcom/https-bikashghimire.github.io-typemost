@@ -1,1 +1,1 @@
-# https-bikashghimire.github.io-typemost
+typemost.com
